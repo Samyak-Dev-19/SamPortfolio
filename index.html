@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMYAK.K — Full-Stack Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: { orange: '#ff8c00', 'orange-light': '#ffaa33', 'orange-dark': '#cc7000' }
+                    },
+                    fontFamily: { mono: ['"Space Mono"', 'monospace'], sans: ['"Inter"', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #ff8c00; border-radius: 3px; }
+        ::selection { background: rgba(255,140,0,0.3); color: #fff; }
+
+        /* Hide default cursor on desktop */
+        @media (pointer: fine) {
+            *, *::before, *::after { cursor: none !important; }
+        }
+
+        .glitch { position: relative; }
+        .glitch::before, .glitch::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+        }
+        .glitch::before {
+            animation: g1 2.5s infinite linear alternate-reverse;
+            clip-path: polygon(0 0, 100% 0, 100% 40%, 0 40%);
+            color: #ff8c00; opacity: 0.7;
+        }
+        .glitch::after {
+            animation: g2 3s infinite linear alternate-reverse;
+            clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+            color: #ff6600; opacity: 0.7;
+        }
+        @keyframes g1 {
+            0%{transform:translateX(0)}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-1px)}80%{transform:translateX(1px)}100%{transform:translateX(0)}
+        }
+        @keyframes g2 {
+            0%{transform:translateX(0)}20%{transform:translateX(3px)}40%{transform:translateX(-3px)}60%{transform:translateX(1px)}80%{transform:translateX(-1px)}100%{transform:translateX(0)}
+        }
+
+        .cursor-blink { display: inline-block; width: 3px; height: 1em; background: #ff8c00; margin-left: 2px; animation: blink 1s step-end infinite; vertical-align: text-bottom; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .skill-fill { width: 0; transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        .card-hover { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .card-hover:hover { transform: translateY(-6px); border-color: rgba(255,140,0,0.35); box-shadow: 0 12px 40px rgba(255,140,0,0.08); }
+
+        .photo-frame { position: relative; }
+        .photo-frame::before { content: ''; position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px; border: 1px solid rgba(255,140,0,0.25); border-radius: 1rem; pointer-events: none; }
+
+        .tech-tag { transition: all 0.3s; }
+        .tech-tag:hover { background: rgba(255,140,0,0.12); border-color: rgba(255,140,0,0.4); color: #ff8c00; }
+
+        .nav-link { position: relative; }
+        .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: #ff8c00; transition: width 0.3s; }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+
+        .pulse-dot { animation: pdot 2s ease-in-out infinite; }
+        @keyframes pdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.6)} }
+
+        .cert-card { position: relative; overflow: hidden; }
+        .cert-card::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,140,0,0.04), transparent); transition: left 0.6s; }
+        .cert-card:hover::before { left: 100%; }
+
+        #mobile-menu { transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+        #mobile-menu.open { transform: translateX(0); }
+
+        #loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.6s, visibility 0.6s; }
+        #loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .section-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,140,0,0.15), transparent); }
+
+        .project-image { transition: all 0.7s ease-out; }
+
+        /* Certificate modal */
+        #cert-modal { transition: opacity 0.3s, visibility 0.3s; }
+        #cert-modal.hidden-modal { opacity: 0; visibility: hidden; pointer-events: none; }
+        #cert-modal .modal-box { transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s; }
+        #cert-modal.hidden-modal .modal-box { transform: scale(0.95) translateY(20px); opacity: 0; }
+
+        /* Cursor ring */
+        #cursor-ring {
+            position: fixed; top: 0; left: 0;
+            border: 1px solid rgba(255,140,0,0.7);
+            border-radius: 50%; pointer-events: none; z-index: 9998;
+            box-shadow: 0 0 20px rgba(255,140,0,0.4);
+            transition: width 0.25s, height 0.25s, opacity 0.25s;
+            mix-blend-mode: difference;
+        }
+        #cursor-dot {
+            position: fixed; top: 0; left: 0;
+            width: 8px; height: 8px; background: #ff8c00;
+            border-radius: 50%; pointer-events: none; z-index: 9999;
+            box-shadow: 0 0 14px #ff8c00;
+        }
+
+        /* Matrix canvas mask — updated by JS */
+        #matrixRain {
+            -webkit-mask-image: linear-gradient(to bottom, transparent 100vh, black calc(100vh + 60px));
+            mask-image: linear-gradient(to bottom, transparent 100vh, black calc(100vh + 60px));
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #ff8c00, #ffaa33, #ff6600);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+
+<body class="bg-black text-white font-sans overflow-x-hidden">
+
+    <!-- LOADER -->
+    <div id="loader">
+        <div class="font-mono text-cyber-orange text-sm tracking-widest mb-4">> INITIALIZING<span id="loader-dots">...</span></div>
+        <div class="w-48 h-0.5 bg-neutral-800 rounded overflow-hidden">
+            <div id="loader-bar" class="h-full bg-cyber-orange rounded" style="width:0%"></div>
+        </div>
+        <div class="font-mono text-neutral-600 text-xs mt-3" id="loader-pct">0%</div>
+    </div>
+
+    <!-- MATRIX RAIN CANVAS (below hero only via CSS mask) -->
+    <canvas id="matrixRain" class="fixed inset-0 w-full h-full pointer-events-none" style="z-index:1;opacity:0.3" aria-hidden="true"></canvas>
+
+    <!-- CUSTOM CURSOR (desktop only) -->
+    <div id="cursor-ring" class="hidden lg:block" style="width:32px;height:32px;opacity:0.6;"></div>
+    <div id="cursor-dot" class="hidden lg:block"></div>
+
+    <!-- NAVIGATION -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="z-index:60;">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
+            <a href="#hero" class="font-mono font-bold text-lg tracking-tight group">
+                <span class="text-cyber-orange">&gt;</span><span class="text-white group-hover:text-cyber-orange transition-colors">SAMYAK</span><span class="text-neutral-500">.K</span>
+            </a>
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#about" class="nav-link font-mono text-xs tracking-widest uppercase text-neutral-400 hover:text-cyber-orange transition-colors">About</a>
+                <a href="#skills" class="nav-link font-mono text-xs tracking-widest uppercase text-neutral-400 hover:text-cyber-orange transition-colors">Skills</a>
+                <a href="#projects" class="nav-link font-mono text-xs tracking-widest uppercase text-neutral-400 hover:text-cyber-orange transition-colors">Projects</a>
+                <a href="#certificates" class="nav-link font-mono text-xs tracking-widest uppercase text-neutral-400 hover:text-cyber-orange transition-colors">Certificates</a>
+                <a href="#contact" class="nav-link font-mono text-xs tracking-widest uppercase text-neutral-400 hover:text-cyber-orange transition-colors">Contact</a>
+            </div>
+            <button id="menu-btn" class="md:hidden text-neutral-400 hover:text-cyber-orange transition-colors interactive" aria-label="Menu">
+                <span class="iconify" data-icon="mdi:menu" data-width="28"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MOBILE MENU -->
+    <div id="mobile-menu" class="fixed inset-y-0 right-0 w-72 bg-neutral-950/95 backdrop-blur-xl border-l border-neutral-800 p-8 flex flex-col" style="z-index:65;">
+        <button id="close-menu" class="self-end text-neutral-400 hover:text-cyber-orange mb-10" aria-label="Close">
+            <span class="iconify" data-icon="mdi:close" data-width="28"></span>
+        </button>
+        <div class="flex flex-col gap-6">
+            <a href="#about" class="mobile-link font-mono text-sm tracking-widest uppercase text-neutral-300 hover:text-cyber-orange transition-colors">About</a>
+            <a href="#skills" class="mobile-link font-mono text-sm tracking-widest uppercase text-neutral-300 hover:text-cyber-orange transition-colors">Skills</a>
+            <a href="#projects" class="mobile-link font-mono text-sm tracking-widest uppercase text-neutral-300 hover:text-cyber-orange transition-colors">Projects</a>
+            <a href="#certificates" class="mobile-link font-mono text-sm tracking-widest uppercase text-neutral-300 hover:text-cyber-orange transition-colors">Certificates</a>
+            <a href="#contact" class="mobile-link font-mono text-sm tracking-widest uppercase text-neutral-300 hover:text-cyber-orange transition-colors">Contact</a>
+        </div>
+        <div class="mt-auto flex gap-4">
+            <a href="https://github.com/Samyak-Dev-19" target="_blank" class="text-neutral-500 hover:text-cyber-orange transition-colors"><span class="iconify" data-icon="mdi:github" data-width="22"></span></a>
+            <a href="https://www.linkedin.com/in/samyak-katarne-954438325" target="_blank" class="text-neutral-500 hover:text-cyber-orange transition-colors"><span class="iconify" data-icon="mdi:linkedin" data-width="22"></span></a>
+            <a href="https://www.instagram.com/samy_kat_19" target="_blank" class="text-neutral-500 hover:text-cyber-orange transition-colors"><span class="iconify" data-icon="mdi:instagram" data-width="22"></span></a>
+        </div>
+    </div>
+    <div id="menu-overlay" class="fixed inset-0 bg-black/60 hidden" style="z-index:64;"></div>
+
+    <!-- ===== HERO ===== -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden" style="z-index:2;">
+        <canvas id="blackhole" class="absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70 z-[1]"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30 z-[1]"></div>
+
+        <div class="relative z-[2] text-center px-6 max-w-5xl mx-auto">
+            <div class="font-mono text-[10px] tracking-[0.3em] uppercase text-neutral-600 mb-6 reveal">&lt;!-- welcome to my universe --&gt;</div>
+            <h1 class="glitch mb-4" data-text="SAMYAK KATARNE">
+                <span class="block text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-none text-white">SAMYAK</span>
+                <span class="block text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-none text-cyber-orange">KATARNE</span>
+            </h1>
+            <div class="font-mono text-lg sm:text-xl md:text-2xl text-neutral-300 mb-8 reveal" style="transition-delay:0.2s">
+                <span class="text-cyber-orange">&gt;</span> <span id="typed-text"></span><span class="cursor-blink"></span>
+            </div>
+            <p class="text-neutral-400 text-sm sm:text-base max-w-xl mx-auto mb-10 leading-relaxed reveal" style="transition-delay:0.35s">
+                BCA graduate crafting digital experiences — from Android apps with Kotlin to immersive web interfaces. Driven by curiosity, shipped by code.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14 reveal" style="transition-delay:0.5s">
+                <a href="#projects" class="interactive group inline-flex items-center gap-2 bg-cyber-orange text-black font-mono text-xs font-bold tracking-widest uppercase px-8 py-4 hover:bg-cyber-orange-light transition-all duration-300">
+                    VIEW PROJECTS <span class="iconify group-hover:translate-x-1 transition-transform" data-icon="mdi:arrow-right" data-width="16"></span>
+                </a>
+                <a href="#contact" class="interactive group inline-flex items-center gap-2 border border-neutral-700 text-neutral-300 font-mono text-xs font-bold tracking-widest uppercase px-8 py-4 hover:border-cyber-orange hover:text-cyber-orange transition-all duration-300">
+                    CONTACT <span class="iconify group-hover:translate-x-1 transition-transform" data-icon="mdi:arrow-right" data-width="16"></span>
+                </a>
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-3 reveal" style="transition-delay:0.65s">
+                <span class="tech-tag font-mono text-[10px] tracking-widest uppercase border border-neutral-800 text-neutral-500 px-3 py-1.5 cursor-default">HTML / CSS</span>
+                <span class="tech-tag font-mono text-[10px] tracking-widest uppercase border border-neutral-800 text-neutral-500 px-3 py-1.5 cursor-default">JavaScript</span>
+                <span class="tech-tag font-mono text-[10px] tracking-widest uppercase border border-neutral-800 text-neutral-500 px-3 py-1.5 cursor-default">Kotlin</span>
+                <span class="tech-tag font-mono text-[10px] tracking-widest uppercase border border-neutral-800 text-neutral-500 px-3 py-1.5 cursor-default">Android</span>
+                <span class="tech-tag font-mono text-[10px] tracking-widest uppercase border border-neutral-800 text-neutral-500 px-3 py-1.5 cursor-default">MongoDB</span>
+                <span class="tech-tag font-mono text-[10px] tracking-widest uppercase border border-neutral-800 text-neutral-500 px-3 py-1.5 cursor-default">AI Tools</span>
+            </div>
+        </div>
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-[2] flex flex-col items-center gap-2">
+            <span class="font-mono text-[9px] tracking-[0.3em] uppercase text-neutral-600">Scroll</span>
+            <div class="w-px h-8 bg-gradient-to-b from-cyber-orange/60 to-transparent animate-pulse"></div>
+        </div>
+    </section>
+
+    <!-- ===== ABOUT ===== -->
+    <section id="about" class="relative py-28 md:py-36 px-6 md:px-12" style="z-index:2;">
+        <div class="absolute top-10 right-8 font-mono text-[10px] text-neutral-800 hidden lg:block select-none">
+            const future = await build();<br>// iterate. ship. repeat.
+        </div>
+        <div class="max-w-6xl mx-auto">
+            <div class="flex items-center gap-4 mb-16 reveal">
+                <div class="section-divider flex-1"></div>
+                <span class="font-mono text-[10px] tracking-[0.3em] uppercase text-cyber-orange">About Me</span>
+                <div class="section-divider flex-1"></div>
+            </div>
+            <div class="grid md:grid-cols-5 gap-12 md:gap-16">
+                <div class="md:col-span-2 reveal">
+                    <div class="photo-frame max-w-xs mx-auto md:mx-0">
+                        
+                        <div class="aspect-[3/4] bg-neutral-900 border border-neutral-800 rounded-xl flex flex-col items-center justify-center gap-4 overflow-hidden relative">
+                            <img src="https://i.pinimg.com/736x/2b/80/58/2b805800d8d6cb7514851ab9b5289a52.jpg" alt="photo.png" class="samyakprofile">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-5 justify-center md:justify-start">
+                        <span class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></span>
+                        <span class="font-mono text-xs text-neutral-500">SAMYAK.K • ONLINE</span>
+                    </div>
+                </div>
+                <div class="md:col-span-3 reveal" style="transition-delay:0.15s">
+                    <div class="flex items-center gap-2 mb-6">
+                        <span class="font-mono text-xs text-cyber-orange">//</span>
+                        <span class="font-mono text-xs tracking-widest uppercase text-cyber-orange">BIO.MD</span>
+                    </div>
+                    <div class="border-l-2 border-cyber-orange/20 pl-6 space-y-4 mb-10">
+                        <p class="text-neutral-300 leading-relaxed">Hey there! I'm <span class="text-white font-medium">Samyak Katarne</span> — a BCA graduate who thrives at the intersection of logic and creativity.</p>
+                        <p class="text-neutral-400 leading-relaxed">I build <span class="text-cyber-orange">Android applications</span> with Kotlin, craft responsive &amp; interactive web interfaces with <span class="text-cyber-orange">HTML / CSS / JavaScript</span>, and constantly explore <span class="text-cyber-orange">AI tools</span> to push what's possible.</p>
+                        <p class="text-neutral-400 leading-relaxed">When I'm not coding, I'm iterating on side projects, dissecting new frameworks, or chasing the next "aha" moment. Great software is built one <span class="font-mono text-cyber-orange">commit</span> at a time.</p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="border border-neutral-800 rounded-lg p-4 text-center card-hover interactive">
+                            <div class="text-2xl font-bold text-white mb-1">BCA</div>
+                            <div class="font-mono text-[9px] tracking-widest uppercase text-neutral-500">Graduate</div>
+                        </div>
+                        <div class="border border-neutral-800 rounded-lg p-4 text-center card-hover interactive">
+                            <div class="text-2xl font-bold text-cyber-orange mb-1">3+</div>
+                            <div class="font-mono text-[9px] tracking-widest uppercase text-neutral-500">Projects Shipped</div>
+                        </div>
+                        <div class="border border-neutral-800 rounded-lg p-4 text-center card-hover interactive">
+                            <div class="text-2xl font-bold text-white mb-1">∞</div>
+                            <div class="font-mono text-[9px] tracking-widest uppercase text-neutral-500">Curiosity</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SKILLS ===== -->
+    <section id="skills" class="relative py-28 md:py-36 px-6 md:px-12" style="z-index:2;">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex items-center gap-4 mb-6 reveal">
+                <div class="section-divider flex-1"></div>
+                <span class="font-mono text-[10px] tracking-[0.3em] uppercase text-cyber-orange">Skill Stack</span>
+                <div class="section-divider flex-1"></div>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-center mb-16 reveal">
+                <span class="text-cyber-orange">&lt;</span>SKILL STACK<span class="text-cyber-orange">/&gt;</span>
+            </h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="skills-grid">
+                <div class="skill-card border border-neutral-800 rounded-xl p-6 card-hover interactive reveal" data-percent="80">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-neutral-900 flex items-center justify-center"><span class="iconify text-cyber-orange" data-icon="mdi:language-kotlin" data-width="22"></span></div>
+                        <div><div class="font-semibold text-white text-sm">Kotlin</div><div class="font-mono text-[9px] tracking-widest uppercase text-neutral-500">Android / JVM</div></div>
+                        <span class="ml-auto font-mono text-cyber-orange text-sm font-bold">80%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden"><div class="skill-fill h-full bg-gradient-to-r from-cyber-orange-dark to-cyber-orange rounded-full" data-width="80%"></div></div>
+                </div>
+                <div class="skill-card border border-neutral-800 rounded-xl p-6 card-hover interactive reveal" data-percent="85" style="transition-delay:0.1s">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-neutral-900 flex items-center justify-center"><span class="iconify text-yellow-400" data-icon="mdi:language-javascript" data-width="22"></span></div>
+                        <div><div class="font-semibold text-white text-sm">JavaScript</div><div class="font-mono text-[9px] tracking-widest uppercase text-neutral-500">ES2023 / DOM</div></div>
+                        <span class="ml-auto font-mono text-cyber-orange text-sm font-bold">85%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden"><div class="skill-fill h-full bg-gradient-to-r from-cyber-orange-dark to-cyber-orange rounded-full" data-width="85%"></div></div>
+                </div>
+                <div class="skill-card border border-neutral-800 rounded-xl p-6 card-hover interactive reveal" data-percent="95" style="transition-delay:0.2s">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-neutral-900 flex items-center justify-center"><span class="iconify text-orange-500" data-icon="mdi:language-html5" data-width="22"></span></div>
+                        <div><div class="font-semibold text-white text-sm">HTML</div><div class="font-mono text-[9px] tracking-widest uppercase text-neutral-500">Semantic / A11y</div></div>
+                        <span class="ml-auto font-mono text-cyber-orange text-sm font-bold">95%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden"><div class="skill-fill h-full bg-gradient-to-r from-cyber-orange-dark to-cyber-orange rounded-full" data-width="95%"></div></div>
+                </div>
+                <div class="skill-card border border-neutral-800 rounded-xl p-6 card-hover interactive reveal" data-percent="88" style="transition-delay:0.3s">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-neutral-900 flex items-center justify-center"><span class="iconify text-blue-400" data-icon="mdi:language-css3" data-width="22"></span></div>
+                        <div><div class="font-semibold text-white text-sm">CSS</div><div class="font-mono text-[9px] tracking-widest uppercase text-neutral-500">Flex / Grid / Anim</div></div>
+                        <span class="ml-auto font-mono text-cyber-orange text-sm font-bold">88%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden"><div class="skill-fill h-full bg-gradient-to-r from-cyber-orange-dark to-cyber-orange rounded-full" data-width="88%"></div></div>
+                </div>
+                <div class="skill-card border border-neutral-800 rounded-xl p-6 card-hover interactive reveal" data-percent="75" style="transition-delay:0.4s">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-neutral-900 flex items-center justify-center"><span class="iconify text-green-400" data-icon="mdi:android" data-width="22"></span></div>
+                        <div><div class="font-semibold text-white text-sm">Android</div><div class="font-mono text-[9px] tracking-widest uppercase text-neutral-500">Jetpack / SDK</div></div>
+                        <span class="ml-auto font-mono text-cyber-orange text-sm font-bold">75%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden"><div class="skill-fill h-full bg-gradient-to-r from-cyber-orange-dark to-cyber-orange rounded-full" data-width="75%"></div></div>
+                </div>
+                <div class="skill-card border border-neutral-800 rounded-xl p-6 card-hover interactive reveal" data-percent="65" style="transition-delay:0.5s">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-neutral-900 flex items-center justify-center"><span class="iconify text-emerald-400" data-icon="mdi:database" data-width="22"></span></div>
+                        <div><div class="font-semibold text-white text-sm">MongoDB</div><div class="font-mono text-[9px] tracking-widest uppercase text-neutral-500">NoSQL Basics</div></div>
+                        <span class="ml-auto font-mono text-cyber-orange text-sm font-bold">65%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden"><div class="skill-fill h-full bg-gradient-to-r from-cyber-orange-dark to-cyber-orange rounded-full" data-width="65%"></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PROJECTS ===== -->
+    <section id="projects" class="relative py-28 md:py-36 px-6 md:px-12" style="z-index:2;">
+        <div class="absolute bottom-20 left-8 font-mono text-[10px] text-neutral-800 hidden lg:block select-none">
+            git push origin main<br>// deployed ✓
+        </div>
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center gap-4 mb-6 reveal">
+                <div class="section-divider flex-1"></div>
+                <span class="font-mono text-[10px] tracking-[0.3em] uppercase text-cyber-orange">Selected Projects</span>
+                <div class="section-divider flex-1"></div>
+            </div>
+            <h2 class="text-3xl md:text-5xl font-black tracking-tight text-center mb-16 reveal">
+                FEATURED <span class="gradient-text">PROJECTS</span>
+            </h2>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- PROJECT 1 — IntegraAI -->
+                <a href="https://github.com/Samyak-Dev-19" target="_blank" class="interactive card border border-neutral-800 rounded-3xl overflow-hidden bg-neutral-950/50 block group card-hover reveal">
+                    <div class="aspect-video overflow-hidden">
+                        <img src="https://picsum.photos/seed/integra-ai-kotlin/900/500.jpg" alt="IntegraAI" class="project-image w-full h-full object-cover opacity-70 group-hover:opacity-100">
+                    </div>
+                    <div class="p-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-2xl font-black text-orange-400">IntegraAI</h3>
+                            <span class="iconify text-orange-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" data-icon="mdi:arrow-top-right" data-width="24"></span>
+                        </div>
+                        <p class="text-neutral-400 text-sm leading-relaxed mb-6">AI-powered Android assistant application with futuristic UI, smart responses, automation concepts, and multi-feature integration.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">Kotlin</span>
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">AI</span>
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">Android</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- PROJECT 2 — Quality Xerox -->
+                <a href="https://github.com/Samyak-Dev-19" target="_blank" class="interactive card border border-neutral-800 rounded-3xl overflow-hidden bg-neutral-950/50 block group card-hover reveal" style="transition-delay:0.1s">
+                    <div class="aspect-video overflow-hidden">
+                        <img src="https://picsum.photos/seed/quality-xerox-web/900/500.jpg" alt="Quality Xerox Website" class="project-image w-full h-full object-cover opacity-70 group-hover:opacity-100">
+                    </div>
+                    <div class="p-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-2xl font-black text-orange-400">Quality Xerox Website</h3>
+                            <span class="iconify text-orange-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" data-icon="mdi:arrow-top-right" data-width="24"></span>
+                        </div>
+                        <p class="text-neutral-400 text-sm leading-relaxed mb-6">Modern responsive business website created for Quality Xerox with clean UI, service showcase, contact section, and professional frontend design.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">HTML</span>
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">CSS</span>
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">JavaScript</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- PROJECT 3 — Dual Audio Sync -->
+                <a href="https://github.com/Samyak-Dev-19" target="_blank" class="interactive card border border-neutral-800 rounded-3xl overflow-hidden bg-neutral-950/50 block group card-hover reveal" style="transition-delay:0.2s">
+                    <div class="aspect-video overflow-hidden">
+                        <img src="https://picsum.photos/seed/dual-audio-sync/900/500.jpg" alt="Dual Audio Sync App" class="project-image w-full h-full object-cover opacity-70 group-hover:opacity-100">
+                    </div>
+                    <div class="p-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-2xl font-black text-orange-400">Dual Audio Sync App</h3>
+                            <span class="iconify text-orange-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" data-icon="mdi:arrow-top-right" data-width="24"></span>
+                        </div>
+                        <p class="text-neutral-400 text-sm leading-relaxed mb-6">Android app concept allowing simultaneous audio playback through wired earphones and Bluetooth devices for shared listening experiences.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">Android</span>
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">Audio</span>
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">Kotlin</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- PROJECT 4 — Portfolio Website -->
+                <a href="https://github.com/Samyak-Dev-19" target="_blank" class="interactive card border border-neutral-800 rounded-3xl overflow-hidden bg-neutral-950/50 block group card-hover reveal" style="transition-delay:0.3s">
+                    <div class="aspect-video overflow-hidden">
+                        <img src="https://picsum.photos/seed/cyberpunk-portfolio/900/500.jpg" alt="Portfolio Website" class="project-image w-full h-full object-cover opacity-70 group-hover:opacity-100">
+                    </div>
+                    <div class="p-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-2xl font-black text-orange-400">Portfolio Website</h3>
+                            <span class="iconify text-orange-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" data-icon="mdi:arrow-top-right" data-width="24"></span>
+                        </div>
+                        <p class="text-neutral-400 text-sm leading-relaxed mb-6">Cyberpunk-inspired portfolio with animations, glassmorphism, interactive sections, and futuristic frontend experience.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">Frontend</span>
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">Tailwind</span>
+                            <span class="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-400">UI Design</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    
+<!-- ===== CERTIFICATES ===== -->
+<section id="certificates" class="relative py-28 md:py-36 px-6 md:px-12 border-t border-white/5" style="z-index:2;">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex items-baseline justify-between flex-wrap gap-3 mb-6 reveal">
+            <div class="flex items-baseline gap-4">
+                <span class="font-mono text-xs tracking-[0.3em] text-cyber-orange">/ 04</span>
+                <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
+                    Certificates <span class="text-cyber-orange">/</span> Courses
+                </h2>
+            </div>
+            <span class="font-mono text-[10px] tracking-[0.2em] uppercase text-neutral-600">click any card → expand</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="certs-grid">
+
+            <!-- CERT_01 — Introduction to Artificial Intelligence -->
+            <button class="interactive cert-card text-left bg-neutral-900/60 border border-white/10 overflow-hidden card-hover group reveal" data-cert="0" aria-label="Introduction to Artificial Intelligence certificate">
+                <div class="relative aspect-[4/3] w-full bg-gradient-to-br from-amber-500/10 via-neutral-900 to-neutral-950 overflow-hidden">
+                    <img src="https://z-cdn-media.chatglm.cn/files/a134ea54-7935-4d00-938e-fc2570cdf395.png?auth_key=1879205442-7129d6251f964e8fb3d39091dc013756-0-b09efbdc61e38f42fccac0aee6163dca" alt="Introduction to Artificial Intelligence" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700">
+                    <div class="absolute top-3 left-3 font-mono text-[10px] tracking-[0.25em] uppercase text-cyber-orange bg-black/70 border border-cyber-orange/30 px-2 py-1">CERT_01</div>
+                    <div class="absolute bottom-3 right-3 font-mono text-[9px] tracking-widest uppercase text-amber-400 bg-black/70 border border-amber-500/30 px-2 py-1 flex items-center gap-1">
+                        <span class="iconify" data-icon="mdi:check-decagram" data-width="12"></span> VERIFIED
+                    </div>
+                    <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+                </div>
+                <div class="p-4">
+                    <div class="font-semibold text-base uppercase tracking-tight text-white group-hover:text-cyber-orange transition-colors">Introduction to Artificial Intelligence</div>
+                    <div class="mt-1 font-mono text-[11px] tracking-[0.2em] uppercase text-neutral-500">Simplilearn SkillUP</div>
+                    <div class="mt-1 font-mono text-[10px] tracking-widest text-neutral-700">CODE: 10203266 • MAY 2026</div>
+                </div>
+            </button>
+
+            <!-- CERT_02 — Introduction to Generative AI Studio -->
+            <button class="interactive cert-card text-left bg-neutral-900/60 border border-white/10 overflow-hidden card-hover group reveal" data-cert="1" style="transition-delay:0.06s" aria-label="Introduction to Generative AI Studio certificate">
+                <div class="relative aspect-[4/3] w-full bg-gradient-to-br from-amber-500/10 via-neutral-900 to-neutral-950 overflow-hidden">
+                    <img src="https://z-cdn-media.chatglm.cn/files/39f6018e-9460-47ff-8660-e6c3fe35d94f.png?auth_key=1879205442-c8560e6657264cac95557790114ba56c-0-70c46eabaf380d0d02d86ccd673241f2" alt="Introduction to Generative AI Studio" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700">
+                    <div class="absolute top-3 left-3 font-mono text-[10px] tracking-[0.25em] uppercase text-cyber-orange bg-black/70 border border-cyber-orange/30 px-2 py-1">CERT_02</div>
+                    <div class="absolute bottom-3 right-3 font-mono text-[9px] tracking-widest uppercase text-amber-400 bg-black/70 border border-amber-500/30 px-2 py-1 flex items-center gap-1">
+                        <span class="iconify" data-icon="mdi:check-decagram" data-width="12"></span> VERIFIED
+                    </div>
+                    <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+                </div>
+                <div class="p-4">
+                    <div class="font-semibold text-base uppercase tracking-tight text-white group-hover:text-cyber-orange transition-colors">Introduction to Generative AI Studio</div>
+                    <div class="mt-1 font-mono text-[11px] tracking-[0.2em] uppercase text-neutral-500">Google Cloud / Simplilearn</div>
+                    <div class="mt-1 font-mono text-[10px] tracking-widest text-neutral-700">CODE: 10205716 • MAY 2026</div>
+                </div>
+            </button>
+
+            <!-- CERT_03 — Introduction to MS Excel -->
+            <button class="interactive cert-card text-left bg-neutral-900/60 border border-white/10 overflow-hidden card-hover group reveal" data-cert="2" style="transition-delay:0.12s" aria-label="Introduction to MS Excel certificate">
+                <div class="relative aspect-[4/3] w-full bg-gradient-to-br from-amber-500/10 via-neutral-900 to-neutral-950 overflow-hidden">
+                    <img src="https://z-cdn-media.chatglm.cn/files/601d93a5-dac6-4b52-a580-350fa0e7584a.png?auth_key=1879205442-5563b9ea23904638b01d8935bb0677fc-0-968aa9608274c1ff7fb3de4ef1b1d575" alt="Introduction to MS Excel" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700">
+                    <div class="absolute top-3 left-3 font-mono text-[10px] tracking-[0.25em] uppercase text-cyber-orange bg-black/70 border border-cyber-orange/30 px-2 py-1">CERT_03</div>
+                    <div class="absolute bottom-3 right-3 font-mono text-[9px] tracking-widest uppercase text-amber-400 bg-black/70 border border-amber-500/30 px-2 py-1 flex items-center gap-1">
+                        <span class="iconify" data-icon="mdi:check-decagram" data-width="12"></span> VERIFIED
+                    </div>
+                    <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+                </div>
+                <div class="p-4">
+                    <div class="font-semibold text-base uppercase tracking-tight text-white group-hover:text-cyber-orange transition-colors">Introduction to MS Excel</div>
+                    <div class="mt-1 font-mono text-[11px] tracking-[0.2em] uppercase text-neutral-500">Microsoft / Simplilearn</div>
+                    <div class="mt-1 font-mono text-[10px] tracking-widest text-neutral-700">CODE: 10212178 • MAY 2026</div>
+                </div>
+            </button>
+
+        </div>
+
+        <div class="mt-8 font-mono text-xs tracking-[0.2em] uppercase text-neutral-700 flex items-center gap-2 reveal">
+            <span class="iconify text-cyber-orange" data-icon="mdi:check-decagram" data-width="14"></span>
+            all certificates verified — issued May 2026
+        </div>
+    </div>
+</section>
+
+<!-- ===== CERTIFICATE MODAL ===== -->
+<div id="cert-modal" class="hidden-modal fixed inset-0 flex items-center justify-center p-4" style="z-index:70;" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" id="modal-overlay"></div>
+    <div class="modal-box relative max-w-3xl w-full bg-neutral-950 border border-cyber-orange/30 rounded-2xl overflow-hidden">
+        <button id="modal-close" class="absolute top-4 right-4 text-neutral-400 hover:text-cyber-orange transition-colors interactive z-10" aria-label="Close">
+            <span class="iconify" data-icon="mdi:close" data-width="24"></span>
+        </button>
+        <div class="p-6 pb-0">
+            <h3 id="modal-title" class="text-2xl font-bold uppercase tracking-tight"></h3>
+            <p id="modal-issuer" class="mt-1 font-mono text-xs tracking-[0.2em] uppercase text-cyber-orange"></p>
+            <p id="modal-code" class="mt-0.5 font-mono text-[10px] tracking-widest text-neutral-600"></p>
+        </div>
+        <div class="mt-4 p-6 pt-4">
+            <div class="aspect-[4/3] w-full bg-neutral-900 border border-white/10 rounded-lg overflow-hidden flex items-center justify-center">
+                <img id="modal-image" src="" alt="" class="w-full h-full object-contain">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- ===== CONTACT ===== -->
+    <section id="contact" class="relative py-28 md:py-36 px-6 md:px-12" style="z-index:2;">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex items-center gap-4 mb-6 reveal">
+                <div class="section-divider flex-1"></div>
+                <span class="font-mono text-[10px] tracking-[0.3em] uppercase text-cyber-orange">Let's Connect</span>
+                <div class="section-divider flex-1"></div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+                <div class="reveal">
+                    <h2 class="text-3xl md:text-5xl font-bold tracking-tight mb-6">GOT AN IDEA?<br><span class="text-cyber-orange">LET'S BUILD IT.</span></h2>
+                    <p class="text-neutral-400 leading-relaxed mb-8">Whether it's an Android app, a web project, or a wild idea that needs a developer — I'm always open to collaborating on things that matter.</p>
+                    <a href="mailto:samyak.katarne@example.com" class="interactive group inline-flex items-center gap-3 bg-cyber-orange text-black font-mono text-xs font-bold tracking-widest uppercase px-8 py-4 hover:bg-cyber-orange-light transition-all duration-300">
+                        SEND EMAIL <span class="iconify group-hover:translate-x-1 transition-transform" data-icon="mdi:arrow-right" data-width="16"></span>
+                    </a>
+                </div>
+                <div class="space-y-6 reveal" style="transition-delay:0.15s">
+                    <a href="mailto:samyak.katarne@example.com" class="interactive flex items-center gap-4 group p-4 border border-neutral-800 rounded-xl card-hover">
+                        <div class="w-10 h-10 rounded-lg bg-neutral-900 flex items-center justify-center flex-shrink-0"><span class="iconify text-cyber-orange" data-icon="mdi:email-outline" data-width="20"></span></div>
+                        <div><div class="font-mono text-[9px] tracking-widest uppercase text-neutral-600 mb-0.5">Email</div><div class="text-neutral-300 text-sm group-hover:text-cyber-orange transition-colors">samyak.katarne@example.com</div></div>
+                    </a>
+                    <a href="https://github.com/Samyak-Dev-19" target="_blank" class="interactive flex items-center gap-4 group p-4 border border-neutral-800 rounded-xl card-hover">
+                        <div class="w-10 h-10 rounded-lg bg-neutral-900 flex items-center justify-center flex-shrink-0"><span class="iconify text-cyber-orange" data-icon="mdi:github" data-width="20"></span></div>
+                        <div><div class="font-mono text-[9px] tracking-widest uppercase text-neutral-600 mb-0.5">GitHub</div><div class="text-neutral-300 text-sm group-hover:text-cyber-orange transition-colors">@Samyak-Dev-19</div></div>
+                    </a>
+                    <a href="https://www.linkedin.com/in/samyak-katarne-954438325" target="_blank" class="interactive flex items-center gap-4 group p-4 border border-neutral-800 rounded-xl card-hover">
+                        <div class="w-10 h-10 rounded-lg bg-neutral-900 flex items-center justify-center flex-shrink-0"><span class="iconify text-cyber-orange" data-icon="mdi:linkedin" data-width="20"></span></div>
+                        <div><div class="font-mono text-[9px] tracking-widest uppercase text-neutral-600 mb-0.5">LinkedIn</div><div class="text-neutral-300 text-sm group-hover:text-cyber-orange transition-colors">Samyak Katarne</div></div>
+                    </a>
+                    <a href="https://www.instagram.com/samy_kat_19" target="_blank" class="interactive flex items-center gap-4 group p-4 border border-neutral-800 rounded-xl card-hover">
+                        <div class="w-10 h-10 rounded-lg bg-neutral-900 flex items-center justify-center flex-shrink-0"><span class="iconify text-cyber-orange" data-icon="mdi:instagram" data-width="20"></span></div>
+                        <div><div class="font-mono text-[9px] tracking-widest uppercase text-neutral-600 mb-0.5">Instagram</div><div class="text-neutral-300 text-sm group-hover:text-cyber-orange transition-colors">@samy_kat_19</div></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="border-t border-neutral-900 py-10 px-6 md:px-12 relative" style="z-index:2;">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="font-mono text-xs text-neutral-600">© 2025 SAMYAK.K — All rights reserved.</div>
+            <div class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500 pulse-dot"></span>
+                <span class="font-mono text-[10px] text-neutral-600">System operational</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="https://github.com/Samyak-Dev-19" target="_blank" class="text-neutral-600 hover:text-cyber-orange transition-colors interactive"><span class="iconify" data-icon="mdi:github" data-width="18"></span></a>
+                <a href="https://www.linkedin.com/in/samyak-katarne-954438325" target="_blank" class="text-neutral-600 hover:text-cyber-orange transition-colors interactive"><span class="iconify" data-icon="mdi:linkedin" data-width="18"></span></a>
+                <a href="https://www.instagram.com/samy_kat_19" target="_blank" class="text-neutral-600 hover:text-cyber-orange transition-colors interactive"><span class="iconify" data-icon="mdi:instagram" data-width="18"></span></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- BACK TO TOP -->
+    <button id="back-top" class="interactive fixed bottom-8 right-8 w-10 h-10 bg-neutral-900 border border-neutral-800 rounded-lg flex items-center justify-center text-neutral-500 hover:text-cyber-orange hover:border-cyber-orange/30 transition-all duration-300 opacity-0 pointer-events-none" style="z-index:55;" aria-label="Back to top">
+        <span class="iconify" data-icon="mdi:arrow-up" data-width="18"></span>
+    </button>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script>
+    // ─── LOADER ───
+    (function() {
+        const bar = document.getElementById('loader-bar');
+        const pct = document.getElementById('loader-pct');
+        let p = 0;
+        const iv = setInterval(() => {
+            p += Math.random() * 15 + 5;
+            if (p >= 100) { p = 100; clearInterval(iv); }
+            bar.style.width = p + '%';
+            pct.textContent = Math.round(p) + '%';
+            if (p >= 100) setTimeout(() => document.getElementById('loader').classList.add('hidden'), 400);
+        }, 120);
+    })();
+
+    // ─── BLACKHOLE CANVAS ───
+    (function() {
+        const canvas = document.getElementById('blackhole');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let animationFrame, particles = [];
+        const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+        const resize = () => {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * DPR;
+            canvas.height = rect.height * DPR;
+            ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        };
+        resize();
+        window.addEventListener('resize', resize);
+
+        const createParticle = () => {
+            const rect = canvas.getBoundingClientRect();
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.max(rect.width, rect.height) * (0.65 + Math.random() * 0.45);
+            return {
+                angle, radius: distance,
+                speed: 0.004 + Math.random() * 0.008,
+                pull: 0.4 + Math.random() * 0.6,
+                size: 0.8 + Math.random() * 2.2,
+                alpha: 0.5 + Math.random() * 0.5,
+                hue: Math.random() < 0.7 ? 32 : Math.random() < 0.5 ? 18 : 45,
+                trail: []
+            };
+        };
+        for (let i = 0; i < 700; i++) particles.push(createParticle());
+
+        const render = () => {
+            const rect = canvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height, cx = w / 2, cy = h / 2;
+
+            ctx.fillStyle = 'rgba(0,0,0,0.12)';
+            ctx.fillRect(0, 0, w, h);
+
+            const outerGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w, h) * 0.7);
+            outerGlow.addColorStop(0, 'rgba(255,120,0,0.12)');
+            outerGlow.addColorStop(0.4, 'rgba(255,140,0,0.08)');
+            outerGlow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = outerGlow;
+            ctx.fillRect(0, 0, w, h);
+
+            const ringRadius = Math.min(w, h) * 0.2;
+            const ringGlow = ctx.createRadialGradient(cx, cy, ringRadius * 0.4, cx, cy, ringRadius * 1.9);
+            ringGlow.addColorStop(0, 'rgba(0,0,0,0)');
+            ringGlow.addColorStop(0.4, 'rgba(255,90,0,0.95)');
+            ringGlow.addColorStop(0.6, 'rgba(255,170,0,0.55)');
+            ringGlow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.beginPath(); ctx.arc(cx, cy, ringRadius * 1.9, 0, Math.PI * 2);
+            ctx.fillStyle = ringGlow; ctx.fill();
+
+            const coreGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, ringRadius);
+            coreGlow.addColorStop(0, 'rgba(255,100,0,0.3)');
+            coreGlow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.beginPath(); ctx.arc(cx, cy, ringRadius * 1.4, 0, Math.PI * 2);
+            ctx.fillStyle = coreGlow; ctx.fill();
+
+            ctx.beginPath(); ctx.arc(cx, cy, ringRadius * 0.9, 0, Math.PI * 2);
+            ctx.fillStyle = '#000'; ctx.fill();
+            ctx.shadowBlur = 25; ctx.shadowColor = 'rgba(255,140,0,0.9)';
+            ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,160,0,0.8)'; ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                p.angle += p.speed * (1 + 200 / Math.max(40, p.radius));
+                p.radius -= p.pull;
+                const x = cx + Math.cos(p.angle) * p.radius;
+                const y = cy + Math.sin(p.angle) * p.radius;
+                p.trail.push({ x, y });
+                if (p.trail.length > 8) p.trail.shift();
+                for (let t = 0; t < p.trail.length; t++) {
+                    const pos = p.trail[t];
+                    const opacity = (t / p.trail.length) * p.alpha;
+                    ctx.beginPath();
+                    ctx.fillStyle = `hsla(${p.hue},100%,60%,${opacity})`;
+                    ctx.arc(pos.x, pos.y, p.size * (t / p.trail.length), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                if (p.radius < ringRadius * 0.85) particles[i] = createParticle();
+            }
+            animationFrame = requestAnimationFrame(render);
+        };
+        render();
+    })();
+
+    // ─── MATRIX RAIN (below hero only) ───
+    (function() {
+        const canvas = document.getElementById('matrixRain');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const chars = "アイウエオカキクケコサシスセソタチツテトナabcdefghijklmnopqrstuvwxyz0123456789{}[]<>/=*+-_";
+        let columns, drops, rafId;
+        const fontSize = 14;
+        const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+        const resize = () => {
+            canvas.width = window.innerWidth * DPR;
+            canvas.height = window.innerHeight * DPR;
+            ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+            columns = Math.floor(window.innerWidth / fontSize);
+            drops = Array.from({ length: columns }, () => Math.random() * -40);
+        };
+        resize();
+        window.addEventListener('resize', resize);
+
+        const draw = () => {
+            ctx.fillStyle = 'rgba(9, 9, 11, 0.08)';
+            ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+            ctx.font = `${fontSize}px "Space Mono", monospace`;
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                const x = i * fontSize;
+                const y = drops[i] * fontSize;
+                // amber head
+                if (Math.random() < 0.02) ctx.fillStyle = 'rgba(245, 158, 11, 0.95)';
+                else ctx.fillStyle = `rgba(34, 197, 94, ${0.45 + Math.random() * 0.4})`;
+                ctx.fillText(text, x, y);
+                if (y > window.innerHeight && Math.random() > 0.975) drops[i] = 0;
+                drops[i] += 1;
+            }
+            rafId = requestAnimationFrame(draw);
+        };
+        draw();
+
+        // Dynamic mask: hide matrix behind hero, reveal as user scrolls past
+        function updateMask() {
+            const hero = document.getElementById('hero');
+            if (!hero) return;
+            const heroBottom = hero.getBoundingClientRect().bottom;
+            const fade = 60; // px of fade transition
+            const cutoff = Math.max(0, heroBottom);
+            canvas.style.webkitMaskImage = `linear-gradient(to bottom, transparent ${cutoff}px, black ${cutoff + fade}px)`;
+            canvas.style.maskImage = `linear-gradient(to bottom, transparent ${cutoff}px, black ${cutoff + fade}px)`;
+        }
+        window.addEventListener('scroll', updateMask, { passive: true });
+        window.addEventListener('resize', updateMask);
+        updateMask();
+    })();
+
+    // ─── TYPING EFFECT ───
+    (function() {
+        const el = document.getElementById('typed-text');
+        const phrases = ['FULL-STACK BUILDER_', 'ANDROID DEVELOPER_', 'WEB CRAFTSMAN_', 'CODE ENTHUSIAST_'];
+        let phraseIdx = 0, charIdx = 0, isDeleting = false;
+
+        function type() {
+            const current = phrases[phraseIdx];
+            if (!isDeleting) {
+                el.textContent = current.substring(0, charIdx + 1);
+                charIdx++;
+                if (charIdx === current.length) { isDeleting = true; setTimeout(type, 2000); return; }
+                setTimeout(type, 80 + Math.random() * 40);
+            } else {
+                el.textContent = current.substring(0, charIdx - 1);
+                charIdx--;
+                if (charIdx === 0) { isDeleting = false; phraseIdx = (phraseIdx + 1) % phrases.length; setTimeout(type, 500); return; }
+                setTimeout(type, 40);
+            }
+        }
+        setTimeout(type, 2200);
+    })();
+
+    // ─── SCROLL REVEAL ───
+    (function() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    })();
+
+    // ─── SKILL BAR ANIMATION ───
+    (function() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.querySelectorAll('.skill-fill').forEach(f => f.style.width = f.dataset.width);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.3 });
+        const grid = document.getElementById('skills-grid');
+        if (grid) observer.observe(grid);
+    })();
+
+    // ─── NAVBAR ───
+    (function() {
+        const nav = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 80) {
+                nav.style.background = 'rgba(0,0,0,0.85)';
+                nav.style.backdropFilter = 'blur(12px)';
+                nav.style.borderBottom = '1px solid rgba(255,140,0,0.08)';
+            } else {
+                nav.style.background = 'transparent';
+                nav.style.backdropFilter = 'none';
+                nav.style.borderBottom = '1px solid transparent';
+            }
+        });
+
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + id));
+                }
+            });
+        }, { threshold: 0.3, rootMargin: '-80px 0px -50% 0px' });
+        sections.forEach(s => sectionObserver.observe(s));
+    })();
+
+    // ─── MOBILE MENU ───
+    (function() {
+        const menu = document.getElementById('mobile-menu');
+        const overlay = document.getElementById('menu-overlay');
+        const openBtn = document.getElementById('menu-btn');
+        const closeBtn = document.getElementById('close-menu');
+        const links = document.querySelectorAll('.mobile-link');
+
+        function toggle(open) {
+            if (open) { menu.classList.add('open'); overlay.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+            else { menu.classList.remove('open'); overlay.classList.add('hidden'); document.body.style.overflow = ''; }
+        }
+        openBtn.addEventListener('click', () => toggle(true));
+        closeBtn.addEventListener('click', () => toggle(false));
+        overlay.addEventListener('click', () => toggle(false));
+        links.forEach(l => l.addEventListener('click', () => toggle(false)));
+    })();
+
+   // ─── CERTIFICATE MODAL ───
+(function() {
+    const certs = [
+        {
+            title: 'Introduction to Artificial Intelligence',
+            issuer: 'Simplilearn SkillUP',
+            code: 'CODE: 10203266 • MAY 2026',
+            image: 'https://z-cdn-media.chatglm.cn/files/a134ea54-7935-4d00-938e-fc2570cdf395.png?auth_key=1879205442-7129d6251f964e8fb3d39091dc013756-0-b09efbdc61e38f42fccac0aee6163dca'
+        },
+        {
+            title: 'Introduction to Generative AI Studio',
+            issuer: 'Google Cloud / Simplilearn',
+            code: 'CODE: 10205716 • MAY 2026',
+            image: 'https://z-cdn-media.chatglm.cn/files/39f6018e-9460-47ff-8660-e6c3fe35d94f.png?auth_key=1879205442-c8560e6657264cac95557790114ba56c-0-70c46eabaf380d0d02d86ccd673241f2'
+        },
+        {
+            title: 'Introduction to MS Excel',
+            issuer: 'Microsoft / Simplilearn',
+            code: 'CODE: 10212178 • MAY 2026',
+            image: 'https://z-cdn-media.chatglm.cn/files/601d93a5-dac6-4b52-a580-350fa0e7584a.png?auth_key=1879205442-5563b9ea23904638b01d8935bb0677fc-0-968aa9608274c1ff7fb3de4ef1b1d575'
+        }
+    ];
+
+    const modal = document.getElementById('cert-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalIssuer = document.getElementById('modal-issuer');
+    const modalCode = document.getElementById('modal-code');
+    const modalImage = document.getElementById('modal-image');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalClose = document.getElementById('modal-close');
+
+    function openModal(idx) {
+        const c = certs[idx];
+        if (!c) return;
+        modalTitle.textContent = c.title;
+        modalIssuer.textContent = c.issuer;
+        modalCode.textContent = c.code;
+        modalImage.src = c.image;
+        modalImage.alt = c.title;
+        modal.classList.remove('hidden-modal');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden-modal');
+        document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('[data-cert]').forEach(btn => {
+        btn.addEventListener('click', () => openModal(parseInt(btn.dataset.cert)));
+    });
+
+    modalOverlay.addEventListener('click', closeModal);
+    modalClose.addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+})();
+
+    // ─── CUSTOM CURSOR (desktop only) ───
+    (function() {
+        // Only run on devices with fine pointer (mouse)
+        if (!window.matchMedia('(pointer: fine)').matches) return;
+
+        const ring = document.getElementById('cursor-ring');
+        const dot = document.getElementById('cursor-dot');
+        if (!ring || !dot) return;
+
+        let mouseX = -100, mouseY = -100;
+        let ringX = -100, ringY = -100;
+        let dotX = -100, dotY = -100;
+        let isHovering = false;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        document.addEventListener('mouseover', (e) => {
+            const t = e.target;
+            if (t.closest('a, button, [role="button"], .interactive')) {
+                isHovering = true;
+            } else {
+                isHovering = false;
+            }
+        });
+
+        function animateCursor() {
+            // Lerp for smooth following
+            const ringSpeed = 0.15;
+            const dotSpeed = 0.35;
+
+            ringX += (mouseX - ringX) * ringSpeed;
+            ringY += (mouseY - ringY) * ringSpeed;
+            dotX += (mouseX - dotX) * dotSpeed;
+            dotY += (mouseY - dotY) * dotSpeed;
+
+            const ringSize = isHovering ? 48 : 32;
+            const ringOpacity = isHovering ? 1 : 0.6;
+
+            ring.style.width = ringSize + 'px';
+            ring.style.height = ringSize + 'px';
+            ring.style.opacity = ringOpacity;
+            ring.style.transform = `translate(${ringX - ringSize / 2}px, ${ringY - ringSize / 2}px)`;
+
+            dot.style.transform = `translate(${dotX - 4}px, ${dotY - 4}px)`;
+
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // Hide cursor when leaving window
+        document.addEventListener('mouseleave', () => {
+            ring.style.opacity = '0';
+            dot.style.opacity = '0';
+        });
+        document.addEventListener('mouseenter', () => {
+            dot.style.opacity = '1';
+        });
+    })();
+
+    // ─── BACK TO TOP ───
+    (function() {
+        const btn = document.getElementById('back-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 600) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
+            else { btn.style.opacity = '0'; btn.style.pointerEvents = 'none'; }
+        });
+        btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    })();
+
+    // ─── HERO REVEAL ON LOAD ───
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            document.querySelectorAll('#hero .reveal').forEach(el => el.classList.add('active'));
+        }, 2400);
+    });
+    </script>
+</body>
+</html>
